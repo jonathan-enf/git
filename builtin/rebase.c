@@ -42,7 +42,7 @@ static char const * const builtin_rebase_usage[] = {
 		"[--onto <newbase> | --keep-base] [<upstream> [<branch>]]"),
 	N_("git rebase [-i] [options] [--exec <cmd>] [--onto <newbase>] "
 		"--root [<branch>]"),
-	"git rebase --continue | --abort | --skip | --edit-todo",
+	"git rebase --continue | --abort | --skip | --edit-todo | --status",
 	NULL
 };
 
@@ -71,6 +71,7 @@ enum action {
 	ACTION_ABORT,
 	ACTION_QUIT,
 	ACTION_EDIT_TODO,
+	ACTION_STATUS,
 	ACTION_SHOW_CURRENT_PATCH
 };
 
@@ -81,7 +82,8 @@ static const char *action_names[] = {
 	"abort",
 	"quit",
 	"edit_todo",
-	"show_current_patch"
+	"show_current_patch",
+	"status"
 };
 
 struct rebase_options {
@@ -1157,6 +1159,8 @@ int cmd_rebase(int argc,
 			    N_("abort but keep HEAD where it is"), ACTION_QUIT),
 		OPT_CMDMODE(0, "edit-todo", &options.action, N_("edit the todo list "
 			    "during an interactive rebase"), ACTION_EDIT_TODO),
+		OPT_CMDMODE(0, "status", &options.action, N_("report status of rebase "
+			    "operation"), ACTION_STATUS),
 		OPT_CMDMODE(0, "show-current-patch", &options.action,
 			    N_("show the patch file being applied or merged"),
 			    ACTION_SHOW_CURRENT_PATCH),
@@ -1297,7 +1301,7 @@ int cmd_rebase(int argc,
 	if (options.root && options.fork_point > 0)
 		die(_("options '%s' and '%s' cannot be used together"), "--root", "--fork-point");
 
-	if (options.action != ACTION_NONE && !in_progress)
+	if (options.action != ACTION_NONE && options.action != ACTION_STATUS && !in_progress)
 		die(_("no rebase in progress"));
 
 	if (options.action == ACTION_EDIT_TODO && !is_merge(&options))
@@ -1344,6 +1348,15 @@ int cmd_rebase(int argc,
 		if (read_basic_state(&options))
 			exit(1);
 		goto run_rebase;
+	}
+	case ACTION_STATUS: {
+		if (in_progress) {
+			puts(_("Rebase: in progress."));
+			exit(0);
+		} else {
+			puts(_("Rebase: not in progress."));
+			exit(1);
+		}
 	}
 	case ACTION_SKIP: {
 		struct string_list merge_rr = STRING_LIST_INIT_DUP;

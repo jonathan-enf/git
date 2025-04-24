@@ -14,7 +14,7 @@ SYNOPSIS
 	[--[no-]allow-unrelated-histories]
 	[--[no-]rerere-autoupdate] [-m <msg>] [-F <file>]
 	[--into-name <branch>] [<commit>...]
-'git merge' (--continue | --abort | --quit)
+'git merge' (--continue | --abort | --quit | --status)
 
 DESCRIPTION
 -----------
@@ -123,6 +123,11 @@ list.
 	After a `git merge` stops due to conflicts you can conclude the
 	merge by running `git merge --continue` (see "HOW TO RESOLVE
 	CONFLICTS" section below).
+
+--status::
+	Indicates if a merge operation is currently in progress.
+	Returns exit code 0 (true) if a merge operation is currently
+	in progress, or 1 (false) otherwise.
 
 <commit>...::
 	Commits, usually other branch heads, to merge into our branch.

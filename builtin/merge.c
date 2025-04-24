@@ -86,6 +86,7 @@ static int allow_rerere_auto;
 static int abort_current_merge;
 static int quit_current_merge;
 static int continue_current_merge;
+static int status_of_current_merge;
 static int allow_unrelated_histories;
 static int show_progress = -1;
 static int default_to_upstream = 1;
@@ -285,6 +286,8 @@ static struct option builtin_merge_options[] = {
 		N_("--abort but leave index and working tree alone")),
 	OPT_BOOL(0, "continue", &continue_current_merge,
 		N_("continue the current in-progress merge")),
+	OPT_BOOL(0, "status", &status_of_current_merge,
+		N_("returns true if a merge is currently in-progress")),
 	OPT_BOOL(0, "allow-unrelated-histories", &allow_unrelated_histories,
 		 N_("allow merging unrelated histories")),
 	OPT_SET_INT(0, "progress", &show_progress, N_("force progress reporting"), 1),
@@ -1366,6 +1369,19 @@ int cmd_merge(int argc,
 
 		remove_merge_branch_state(the_repository);
 		goto done;
+	}
+
+	if (status_of_current_merge) {
+		if (orig_argc != 2)
+			usage_msg_opt(_("--status expects not arguments"),
+			      builtin_merge_usage, builtin_merge_options);
+		if (file_exists(git_path_merge_head(the_repository))) {
+			puts(_("Merge: in progress."));
+			exit(0);
+		} else {
+			puts(_("Merge: not in progress."));
+			exit(1);
+		}
 	}
 
 	if (continue_current_merge) {
